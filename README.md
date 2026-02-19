@@ -42,6 +42,30 @@ To learn more about developing your project with Expo, look at the following res
 - [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
 - [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
+## Mapbox setup (homepage map)
+
+This project uses `@rnmapbox/maps` on the home tab. It requires a custom development build (it does not run in Expo Go).
+
+1. Add your public token for runtime map access:
+
+   ```bash
+   export EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN="pk.your_public_token"
+   ```
+
+2. Add your download token for native SDK artifacts:
+
+   ```bash
+   export RNMAPBOX_MAPS_DOWNLOAD_TOKEN="sk.your_secret_download_token"
+   ```
+
+3. Build and run the app:
+
+   ```bash
+   npx expo run:ios
+   # or
+   npx expo run:android
+   ```
+
 ## Join the community
 
 Join our community of developers creating universal apps.
