@@ -1,4 +1,4 @@
-import Mapbox from '@rnmapbox/maps';
+import Constants from 'expo-constants';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -48,11 +48,6 @@ const EVENTS: EventPin[] = [
   },
 ];
 
-const mapboxToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
-if (mapboxToken) {
-  Mapbox.setAccessToken(mapboxToken);
-}
-
 function PulsingEventPin({ active, onPress }: { active: boolean; onPress: () => void }) {
   const pulseScale = useRef(new Animated.Value(1)).current;
   const pulseOpacity = useRef(new Animated.Value(0.45)).current;
@@ -96,6 +91,10 @@ function PulsingEventPin({ active, onPress }: { active: boolean; onPress: () => 
 }
 
 export default function HomeScreen() {
+  const mapboxToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  const isExpoGo = Constants.appOwnership === 'expo';
+  const [Mapbox, setMapbox] = useState<null | (typeof import('@rnmapbox/maps'))>(null);
+
   const [selectedEventId, setSelectedEventId] = useState<string>(EVENTS[0]?.id ?? '');
 
   const selectedEvent = useMemo(
@@ -103,12 +102,40 @@ export default function HomeScreen() {
     [selectedEventId]
   );
 
-  if (!mapboxToken) {
+  useEffect(() => {
+    if (!isExpoGo) {
+      import('@rnmapbox/maps').then((module) => setMapbox(module.default));
+    }
+  }, [isExpoGo]);
+
+  useEffect(() => {
+    if (mapboxToken && Mapbox?.setAccessToken) {
+      Mapbox.setAccessToken(mapboxToken);
+    }
+  }, [Mapbox, mapboxToken]);
+
+  if (isExpoGo) {
     return (
       <View style={styles.missingTokenContainer}>
-        <Text style={styles.missingTokenTitle}>Mapbox token missing</Text>
+        <Text style={styles.missingTokenTitle}>Map unavailable in Expo Go</Text>
         <Text style={styles.missingTokenBody}>
-          Set `EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN` in your environment to load the map.
+          This screen uses `@rnmapbox/maps`, which requires a custom development build.
+        </Text>
+        <Text style={styles.missingTokenBody}>
+          Use `npx expo run:ios` or an EAS dev build for full map performance on iPhone.
+        </Text>
+      </View>
+    );
+  }
+
+  if (!mapboxToken || !Mapbox) {
+    return (
+      <View style={styles.missingTokenContainer}>
+        <Text style={styles.missingTokenTitle}>Loading map...</Text>
+        <Text style={styles.missingTokenBody}>
+          {!mapboxToken
+            ? 'Set `EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN` in your environment to load the map.'
+            : 'Preparing Mapbox module...'}
         </Text>
       </View>
     );
